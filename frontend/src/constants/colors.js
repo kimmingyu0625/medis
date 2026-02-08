@@ -1,0 +1,31 @@
+export const COLORS = {
+  primary: '#4A90D9',
+  primaryDark: '#357ABD',
+  primaryLight: '#7BB3E0',
+  secondary: '#F5A623',
+  success: '#4CAF50',
+  danger: '#E74C3C',
+  warning: '#FF9800',
+  info: '#2196F3',
+  white: '#FFFFFF',
+  black: '#000000',
+  gray: '#9E9E9E',
+  grayLight: '#F5F5F5',
+  grayDark: '#616161',
+  background: '#F8F9FA',
+  card: '#FFFFFF',
+  text: '#333333',
+  textSecondary: '#666666',
+  textLight: '#999999',
+  border: '#E0E0E0',
+};
+
+export const FONT_SIZES = {
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 18,
+  xl: 20,
+  xxl: 24,
+  title: 28,
+};

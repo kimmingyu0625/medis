@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seniorcare.domain.care.mapper.CareMapper">
+
+    <resultMap id="careRequestResultMap" type="com.seniorcare.domain.care.dto.CareRequestDto">
+        <id property="requestId" column="REQUEST_ID"/>
+        <result property="seniorId" column="SENIOR_ID"/>
+        <result property="caregiverId" column="CAREGIVER_ID"/>
+        <result property="careType" column="CARE_TYPE"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="requestedDate" column="REQUESTED_DATE"/>
+        <result property="startTime" column="START_TIME"/>
+        <result property="endTime" column="END_TIME"/>
+        <result property="status" column="STATUS"/>
+        <result property="address" column="ADDRESS"/>
+        <result property="createdAt" column="CREATED_AT"/>
+    </resultMap>
+
+    <resultMap id="caregiverResultMap" type="com.seniorcare.domain.care.dto.CaregiverDto">
+        <id property="caregiverId" column="CAREGIVER_ID"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="name" column="NAME"/>
+        <result property="specialization" column="SPECIALIZATION"/>
+        <result property="certification" column="CERTIFICATION"/>
+        <result property="experienceYears" column="EXPERIENCE_YEARS"/>
+        <result property="introduction" column="INTRODUCTION"/>
+        <result property="availableArea" column="AVAILABLE_AREA"/>
+        <result property="rating" column="RATING"/>
+        <result property="reviewCount" column="REVIEW_COUNT"/>
+        <result property="profileImage" column="PROFILE_IMAGE"/>
+    </resultMap>
+
+    <select id="findRequestsBySeniorId" resultMap="careRequestResultMap">
+        SELECT REQUEST_ID, SENIOR_ID, CAREGIVER_ID, CARE_TYPE, DESCRIPTION,
+               TO_CHAR(REQUESTED_DATE, 'YYYY-MM-DD') AS REQUESTED_DATE,
+               START_TIME, END_TIME, STATUS, ADDRESS,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM CARE_REQUESTS
+        WHERE SENIOR_ID = #{seniorId}
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <select id="findRequestsByCaregiverId" resultMap="careRequestResultMap">
+        SELECT REQUEST_ID, SENIOR_ID, CAREGIVER_ID, CARE_TYPE, DESCRIPTION,
+               TO_CHAR(REQUESTED_DATE, 'YYYY-MM-DD') AS REQUESTED_DATE,
+               START_TIME, END_TIME, STATUS, ADDRESS,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM CARE_REQUESTS
+        WHERE CAREGIVER_ID = #{caregiverId}
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <select id="findRequestById" resultMap="careRequestResultMap">
+        SELECT REQUEST_ID, SENIOR_ID, CAREGIVER_ID, CARE_TYPE, DESCRIPTION,
+               TO_CHAR(REQUESTED_DATE, 'YYYY-MM-DD') AS REQUESTED_DATE,
+               START_TIME, END_TIME, STATUS, ADDRESS,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM CARE_REQUESTS
+        WHERE REQUEST_ID = #{requestId}
+    </select>
+
+    <insert id="insertRequest" parameterType="com.seniorcare.domain.care.dto.CareRequestDto">
+        <selectKey keyProperty="requestId" resultType="long" order="BEFORE">
+            SELECT CARE_REQUEST_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CARE_REQUESTS (REQUEST_ID, SENIOR_ID, CAREGIVER_ID, CARE_TYPE,
+                                    DESCRIPTION, REQUESTED_DATE, START_TIME, END_TIME,
+                                    STATUS, ADDRESS, CREATED_AT)
+        VALUES (#{requestId}, #{seniorId}, #{caregiverId}, #{careType},
+                #{description}, TO_DATE(#{requestedDate}, 'YYYY-MM-DD'),
+                #{startTime}, #{endTime}, #{status}, #{address}, SYSDATE)
+    </insert>
+
+    <update id="updateRequestStatus">
+        UPDATE CARE_REQUESTS
+        SET STATUS = #{status}
+        WHERE REQUEST_ID = #{requestId}
+    </update>
+
+    <select id="findAvailableCaregivers" resultMap="caregiverResultMap">
+        SELECT c.CAREGIVER_ID, c.USER_ID, u.NAME, c.SPECIALIZATION,
+               c.CERTIFICATION, c.EXPERIENCE_YEARS, c.INTRODUCTION,
+               c.AVAILABLE_AREA, c.RATING, c.REVIEW_COUNT, u.PROFILE_IMAGE
+        FROM CAREGIVERS c
+        JOIN USERS u ON c.USER_ID = u.USER_ID
+        WHERE 1=1
+        <if test="area != null and area != ''">
+            AND c.AVAILABLE_AREA LIKE '%' || #{area} || '%'
+        </if>
+        <if test="careType != null and careType != ''">
+            AND c.SPECIALIZATION LIKE '%' || #{careType} || '%'
+        </if>
+        ORDER BY c.RATING DESC NULLS LAST
+    </select>
+
+    <select id="findCaregiverByUserId" resultMap="caregiverResultMap">
+        SELECT c.CAREGIVER_ID, c.USER_ID, u.NAME, c.SPECIALIZATION,
+               c.CERTIFICATION, c.EXPERIENCE_YEARS, c.INTRODUCTION,
+               c.AVAILABLE_AREA, c.RATING, c.REVIEW_COUNT, u.PROFILE_IMAGE
+        FROM CAREGIVERS c
+        JOIN USERS u ON c.USER_ID = u.USER_ID
+        WHERE c.USER_ID = #{userId}
+    </select>
+
+    <insert id="insertCaregiver" parameterType="com.seniorcare.domain.care.dto.CaregiverDto">
+        <selectKey keyProperty="caregiverId" resultType="long" order="BEFORE">
+            SELECT CAREGIVER_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CAREGIVERS (CAREGIVER_ID, USER_ID, SPECIALIZATION, CERTIFICATION,
+                                EXPERIENCE_YEARS, INTRODUCTION, AVAILABLE_AREA, RATING, REVIEW_COUNT)
+        VALUES (#{caregiverId}, #{userId}, #{specialization}, #{certification},
+                #{experienceYears}, #{introduction}, #{availableArea}, 0, 0)
+    </insert>
+
+    <update id="updateCaregiver" parameterType="com.seniorcare.domain.care.dto.CaregiverDto">
+        UPDATE CAREGIVERS
+        SET SPECIALIZATION = #{specialization},
+            CERTIFICATION = #{certification},
+            EXPERIENCE_YEARS = #{experienceYears},
+            INTRODUCTION = #{introduction},
+            AVAILABLE_AREA = #{availableArea}
+        WHERE CAREGIVER_ID = #{caregiverId}
+    </update>
+
+</mapper>

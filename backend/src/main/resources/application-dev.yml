@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@${ORACLE_HOST:localhost}:${ORACLE_PORT:1521}/${ORACLE_SERVICE:XEPDB1}
+    username: ${ORACLE_USERNAME:seniorcare}
+    password: ${ORACLE_PASSWORD:seniorcare}
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+logging:
+  level:
+    com.seniorcare: DEBUG
+    org.springframework.security: DEBUG
+    org.mybatis: DEBUG

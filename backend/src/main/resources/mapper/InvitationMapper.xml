@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seniorcare.domain.invitation.mapper.InvitationMapper">
+
+    <resultMap id="invitationResultMap" type="com.seniorcare.domain.invitation.dto.InvitationDto">
+        <id property="invitationId" column="INVITATION_ID"/>
+        <result property="inviteCode" column="INVITE_CODE"/>
+        <result property="inviterUserId" column="INVITER_USER_ID"/>
+        <result property="inviteePhone" column="INVITEE_PHONE"/>
+        <result property="inviteeUserId" column="INVITEE_USER_ID"/>
+        <result property="relationship" column="RELATIONSHIP"/>
+        <result property="status" column="STATUS"/>
+        <result property="expiredAt" column="EXPIRED_AT"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="inviterName" column="INVITER_NAME"/>
+    </resultMap>
+
+    <insert id="insertInvitation" parameterType="com.seniorcare.domain.invitation.dto.InvitationDto">
+        <selectKey keyProperty="invitationId" resultType="long" order="BEFORE">
+            SELECT INVITATION_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO INVITATIONS (INVITATION_ID, INVITE_CODE, INVITER_USER_ID,
+                                  INVITEE_PHONE, RELATIONSHIP, STATUS,
+                                  EXPIRED_AT, CREATED_AT)
+        VALUES (#{invitationId}, #{inviteCode}, #{inviterUserId},
+                #{inviteePhone}, #{relationship}, #{status},
+                TO_TIMESTAMP(#{expiredAt}, 'YYYY-MM-DD HH24:MI:SS'), SYSDATE)
+    </insert>
+
+    <select id="findByInviteCode" resultMap="invitationResultMap">
+        SELECT i.INVITATION_ID, i.INVITE_CODE, i.INVITER_USER_ID,
+               i.INVITEE_PHONE, i.INVITEE_USER_ID, i.RELATIONSHIP,
+               i.STATUS,
+               TO_CHAR(i.EXPIRED_AT, 'YYYY-MM-DD HH24:MI:SS') AS EXPIRED_AT,
+               TO_CHAR(i.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+               u.NAME AS INVITER_NAME
+        FROM INVITATIONS i
+        JOIN USERS u ON i.INVITER_USER_ID = u.USER_ID
+        WHERE i.INVITE_CODE = #{inviteCode}
+    </select>
+
+    <select id="findById" resultMap="invitationResultMap">
+        SELECT i.INVITATION_ID, i.INVITE_CODE, i.INVITER_USER_ID,
+               i.INVITEE_PHONE, i.INVITEE_USER_ID, i.RELATIONSHIP,
+               i.STATUS,
+               TO_CHAR(i.EXPIRED_AT, 'YYYY-MM-DD HH24:MI:SS') AS EXPIRED_AT,
+               TO_CHAR(i.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+               u.NAME AS INVITER_NAME
+        FROM INVITATIONS i
+        JOIN USERS u ON i.INVITER_USER_ID = u.USER_ID
+        WHERE i.INVITATION_ID = #{invitationId}
+    </select>
+
+    <select id="findByInviterUserId" resultMap="invitationResultMap">
+        SELECT i.INVITATION_ID, i.INVITE_CODE, i.INVITER_USER_ID,
+               i.INVITEE_PHONE, i.INVITEE_USER_ID, i.RELATIONSHIP,
+               i.STATUS,
+               TO_CHAR(i.EXPIRED_AT, 'YYYY-MM-DD HH24:MI:SS') AS EXPIRED_AT,
+               TO_CHAR(i.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+               u.NAME AS INVITER_NAME
+        FROM INVITATIONS i
+        JOIN USERS u ON i.INVITER_USER_ID = u.USER_ID
+        WHERE i.INVITER_USER_ID = #{inviterUserId}
+        ORDER BY i.CREATED_AT DESC
+    </select>
+
+    <select id="findPendingByPhone" resultMap="invitationResultMap">
+        SELECT i.INVITATION_ID, i.INVITE_CODE, i.INVITER_USER_ID,
+               i.INVITEE_PHONE, i.INVITEE_USER_ID, i.RELATIONSHIP,
+               i.STATUS,
+               TO_CHAR(i.EXPIRED_AT, 'YYYY-MM-DD HH24:MI:SS') AS EXPIRED_AT,
+               TO_CHAR(i.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT,
+               u.NAME AS INVITER_NAME
+        FROM INVITATIONS i
+        JOIN USERS u ON i.INVITER_USER_ID = u.USER_ID
+        WHERE i.INVITEE_PHONE = #{phone}
+          AND i.STATUS = 'PENDING'
+          AND i.EXPIRED_AT > SYSDATE
+    </select>
+
+    <update id="updateStatus">
+        UPDATE INVITATIONS
+        SET STATUS = #{status}
+        WHERE INVITATION_ID = #{invitationId}
+    </update>
+
+    <update id="updateInviteeUserId">
+        UPDATE INVITATIONS
+        SET INVITEE_USER_ID = #{inviteeUserId}
+        WHERE INVITATION_ID = #{invitationId}
+    </update>
+
+</mapper>

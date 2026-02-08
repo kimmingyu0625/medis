@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seniorcare.domain.medication.mapper.MedicationMapper">
+
+    <resultMap id="medicationResultMap" type="com.seniorcare.domain.medication.dto.MedicationDto">
+        <id property="medicationId" column="MEDICATION_ID"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="name" column="NAME"/>
+        <result property="dosage" column="DOSAGE"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="startDate" column="START_DATE"/>
+        <result property="endDate" column="END_DATE"/>
+        <result property="createdAt" column="CREATED_AT"/>
+    </resultMap>
+
+    <resultMap id="scheduleResultMap" type="com.seniorcare.domain.medication.dto.MedicationScheduleDto">
+        <id property="scheduleId" column="SCHEDULE_ID"/>
+        <result property="medicationId" column="MEDICATION_ID"/>
+        <result property="scheduledTime" column="SCHEDULED_TIME"/>
+        <result property="dayOfWeek" column="DAY_OF_WEEK"/>
+        <result property="taken" column="TAKEN"/>
+        <result property="takenAt" column="TAKEN_AT"/>
+        <result property="createdAt" column="CREATED_AT"/>
+    </resultMap>
+
+    <select id="findByUserId" resultMap="medicationResultMap">
+        SELECT MEDICATION_ID, USER_ID, NAME, DOSAGE, DESCRIPTION,
+               TO_CHAR(START_DATE, 'YYYY-MM-DD') AS START_DATE,
+               TO_CHAR(END_DATE, 'YYYY-MM-DD') AS END_DATE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM MEDICATIONS
+        WHERE USER_ID = #{userId}
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <select id="findById" resultMap="medicationResultMap">
+        SELECT MEDICATION_ID, USER_ID, NAME, DOSAGE, DESCRIPTION,
+               TO_CHAR(START_DATE, 'YYYY-MM-DD') AS START_DATE,
+               TO_CHAR(END_DATE, 'YYYY-MM-DD') AS END_DATE,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM MEDICATIONS
+        WHERE MEDICATION_ID = #{medicationId}
+    </select>
+
+    <insert id="insertMedication" parameterType="com.seniorcare.domain.medication.dto.MedicationDto">
+        <selectKey keyProperty="medicationId" resultType="long" order="BEFORE">
+            SELECT MEDICATION_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO MEDICATIONS (MEDICATION_ID, USER_ID, NAME, DOSAGE, DESCRIPTION,
+                                 START_DATE, END_DATE, CREATED_AT)
+        VALUES (#{medicationId}, #{userId}, #{name}, #{dosage}, #{description},
+                TO_DATE(#{startDate}, 'YYYY-MM-DD'), TO_DATE(#{endDate}, 'YYYY-MM-DD'), SYSDATE)
+    </insert>
+
+    <update id="updateMedication" parameterType="com.seniorcare.domain.medication.dto.MedicationDto">
+        UPDATE MEDICATIONS
+        SET NAME = #{name},
+            DOSAGE = #{dosage},
+            DESCRIPTION = #{description},
+            START_DATE = TO_DATE(#{startDate}, 'YYYY-MM-DD'),
+            END_DATE = TO_DATE(#{endDate}, 'YYYY-MM-DD')
+        WHERE MEDICATION_ID = #{medicationId}
+    </update>
+
+    <delete id="deleteMedication">
+        DELETE FROM MEDICATIONS WHERE MEDICATION_ID = #{medicationId}
+    </delete>
+
+    <select id="findSchedulesByMedicationId" resultMap="scheduleResultMap">
+        SELECT SCHEDULE_ID, MEDICATION_ID, SCHEDULED_TIME, DAY_OF_WEEK,
+               TAKEN, TO_CHAR(TAKEN_AT, 'YYYY-MM-DD HH24:MI:SS') AS TAKEN_AT,
+               TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM MEDICATION_SCHEDULES
+        WHERE MEDICATION_ID = #{medicationId}
+        ORDER BY SCHEDULED_TIME
+    </select>
+
+    <select id="findTodaySchedules" resultMap="scheduleResultMap">
+        SELECT s.SCHEDULE_ID, s.MEDICATION_ID, s.SCHEDULED_TIME, s.DAY_OF_WEEK,
+               s.TAKEN, TO_CHAR(s.TAKEN_AT, 'YYYY-MM-DD HH24:MI:SS') AS TAKEN_AT,
+               TO_CHAR(s.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM MEDICATION_SCHEDULES s
+        JOIN MEDICATIONS m ON s.MEDICATION_ID = m.MEDICATION_ID
+        WHERE m.USER_ID = #{userId}
+          AND (s.DAY_OF_WEEK = 'DAILY'
+               OR s.DAY_OF_WEEK = TRIM(TO_CHAR(SYSDATE, 'DY')))
+          AND SYSDATE BETWEEN NVL(m.START_DATE, SYSDATE) AND NVL(m.END_DATE, SYSDATE)
+        ORDER BY s.SCHEDULED_TIME
+    </select>
+
+    <insert id="insertSchedule" parameterType="com.seniorcare.domain.medication.dto.MedicationScheduleDto">
+        <selectKey keyProperty="scheduleId" resultType="long" order="BEFORE">
+            SELECT SCHEDULE_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO MEDICATION_SCHEDULES (SCHEDULE_ID, MEDICATION_ID, SCHEDULED_TIME,
+                                          DAY_OF_WEEK, TAKEN, CREATED_AT)
+        VALUES (#{scheduleId}, #{medicationId}, #{scheduledTime}, #{dayOfWeek}, 0, SYSDATE)
+    </insert>
+
+    <update id="updateScheduleTaken">
+        UPDATE MEDICATION_SCHEDULES
+        SET TAKEN = #{taken},
+            TAKEN_AT = CASE WHEN #{taken} = 1 THEN SYSDATE ELSE NULL END
+        WHERE SCHEDULE_ID = #{scheduleId}
+    </update>
+
+    <delete id="deleteSchedule">
+        DELETE FROM MEDICATION_SCHEDULES WHERE SCHEDULE_ID = #{scheduleId}
+    </delete>
+
+</mapper>

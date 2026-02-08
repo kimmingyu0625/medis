@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@${ORACLE_TNS_NAME}?TNS_ADMIN=${ORACLE_WALLET_PATH}
+    username: ${ORACLE_USERNAME}
+    password: ${ORACLE_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+logging:
+  level:
+    com.seniorcare: INFO
+    org.springframework.security: WARN

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seniorcare.domain.guardian.mapper.GuardianMapper">
+
+    <resultMap id="guardianResultMap" type="com.seniorcare.domain.guardian.dto.GuardianDto">
+        <id property="guardianId" column="GUARDIAN_ID"/>
+        <result property="guardianUserId" column="GUARDIAN_USER_ID"/>
+        <result property="seniorUserId" column="SENIOR_USER_ID"/>
+        <result property="relationship" column="RELATIONSHIP"/>
+        <result property="status" column="STATUS"/>
+        <result property="guardianName" column="GUARDIAN_NAME"/>
+        <result property="seniorName" column="SENIOR_NAME"/>
+        <result property="createdAt" column="CREATED_AT"/>
+    </resultMap>
+
+    <select id="findByGuardianUserId" resultMap="guardianResultMap">
+        SELECT g.GUARDIAN_ID, g.GUARDIAN_USER_ID, g.SENIOR_USER_ID,
+               g.RELATIONSHIP, g.STATUS,
+               gu.NAME AS GUARDIAN_NAME, su.NAME AS SENIOR_NAME,
+               TO_CHAR(g.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM GUARDIANS g
+        JOIN USERS gu ON g.GUARDIAN_USER_ID = gu.USER_ID
+        JOIN USERS su ON g.SENIOR_USER_ID = su.USER_ID
+        WHERE g.GUARDIAN_USER_ID = #{guardianUserId}
+        ORDER BY g.CREATED_AT DESC
+    </select>
+
+    <select id="findBySeniorUserId" resultMap="guardianResultMap">
+        SELECT g.GUARDIAN_ID, g.GUARDIAN_USER_ID, g.SENIOR_USER_ID,
+               g.RELATIONSHIP, g.STATUS,
+               gu.NAME AS GUARDIAN_NAME, su.NAME AS SENIOR_NAME,
+               TO_CHAR(g.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM GUARDIANS g
+        JOIN USERS gu ON g.GUARDIAN_USER_ID = gu.USER_ID
+        JOIN USERS su ON g.SENIOR_USER_ID = su.USER_ID
+        WHERE g.SENIOR_USER_ID = #{seniorUserId}
+        ORDER BY g.CREATED_AT DESC
+    </select>
+
+    <select id="findById" resultMap="guardianResultMap">
+        SELECT g.GUARDIAN_ID, g.GUARDIAN_USER_ID, g.SENIOR_USER_ID,
+               g.RELATIONSHIP, g.STATUS,
+               gu.NAME AS GUARDIAN_NAME, su.NAME AS SENIOR_NAME,
+               TO_CHAR(g.CREATED_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATED_AT
+        FROM GUARDIANS g
+        JOIN USERS gu ON g.GUARDIAN_USER_ID = gu.USER_ID
+        JOIN USERS su ON g.SENIOR_USER_ID = su.USER_ID
+        WHERE g.GUARDIAN_ID = #{guardianId}
+    </select>
+
+    <insert id="insertGuardian" parameterType="com.seniorcare.domain.guardian.dto.GuardianDto">
+        <selectKey keyProperty="guardianId" resultType="long" order="BEFORE">
+            SELECT GUARDIAN_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO GUARDIANS (GUARDIAN_ID, GUARDIAN_USER_ID, SENIOR_USER_ID,
+                                RELATIONSHIP, STATUS, CREATED_AT)
+        VALUES (#{guardianId}, #{guardianUserId}, #{seniorUserId},
+                #{relationship}, #{status}, SYSDATE)
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE GUARDIANS
+        SET STATUS = #{status}
+        WHERE GUARDIAN_ID = #{guardianId}
+    </update>
+
+    <delete id="deleteGuardian">
+        DELETE FROM GUARDIANS WHERE GUARDIAN_ID = #{guardianId}
+    </delete>
+
+</mapper>

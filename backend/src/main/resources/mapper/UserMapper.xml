@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.seniorcare.domain.user.mapper.UserMapper">
+
+    <resultMap id="userResultMap" type="com.seniorcare.domain.user.dto.UserDto">
+        <id property="userId" column="USER_ID"/>
+        <result property="email" column="EMAIL"/>
+        <result property="name" column="NAME"/>
+        <result property="phone" column="PHONE"/>
+        <result property="role" column="ROLE"/>
+        <result property="provider" column="PROVIDER"/>
+        <result property="profileImage" column="PROFILE_IMAGE"/>
+        <result property="password" column="PASSWORD"/>
+        <result property="createdAt" column="CREATED_AT"/>
+    </resultMap>
+
+    <select id="findById" resultMap="userResultMap">
+        SELECT USER_ID, EMAIL, NAME, PHONE, ROLE, PROVIDER, PROFILE_IMAGE, CREATED_AT
+        FROM USERS
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="findByEmail" resultMap="userResultMap">
+        SELECT USER_ID, EMAIL, PASSWORD, NAME, PHONE, ROLE, PROVIDER, PROFILE_IMAGE, CREATED_AT
+        FROM USERS
+        WHERE EMAIL = #{email}
+    </select>
+
+    <select id="findByProviderAndProviderId" resultMap="userResultMap">
+        SELECT USER_ID, EMAIL, NAME, PHONE, ROLE, PROVIDER, PROFILE_IMAGE, CREATED_AT
+        FROM USERS
+        WHERE PROVIDER = #{provider} AND PROVIDER_ID = #{providerId}
+    </select>
+
+    <insert id="insertUser" parameterType="com.seniorcare.domain.user.dto.UserDto">
+        <selectKey keyProperty="userId" resultType="long" order="BEFORE">
+            SELECT USER_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO USERS (USER_ID, EMAIL, PASSWORD, NAME, PHONE, ROLE, PROVIDER, PROFILE_IMAGE, CREATED_AT)
+        VALUES (#{userId}, #{email}, #{password}, #{name}, #{phone}, #{role}, #{provider}, #{profileImage}, SYSDATE)
+    </insert>
+
+    <update id="updateUser" parameterType="com.seniorcare.domain.user.dto.UserDto">
+        UPDATE USERS
+        SET NAME = #{name},
+            PHONE = #{phone},
+            PROFILE_IMAGE = #{profileImage}
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <select id="findByPhone" resultMap="userResultMap">
+        SELECT USER_ID, EMAIL, NAME, PHONE, ROLE, PROVIDER, PROFILE_IMAGE, CREATED_AT
+        FROM USERS
+        WHERE PHONE = #{phone}
+    </select>
+
+    <delete id="deleteUser">
+        DELETE FROM USERS WHERE USER_ID = #{userId}
+    </delete>
+
+</mapper>
